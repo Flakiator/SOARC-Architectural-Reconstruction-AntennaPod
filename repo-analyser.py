@@ -9,7 +9,7 @@ from pyvis.network import Network
 import matplotlib.pyplot as plt
 # Get curent working directory
 #print(os.getcwd())
-code_root_folder = "/Users/niklaschristensen/Desktop/AntennaPod"
+code_root_folder = "/Users/niklaschristensen/Desktop/antenna"
 
 def file_path(file_name):
     return code_root_folder+file_name
@@ -66,6 +66,12 @@ def imports_from_file(file):
 
     return all_imports
 
+def relevant_module(module_name): 
+    # Exclude only explicit test package segments (e.g. .test. or .tests.).
+    excluded_segments = {"test", "tests", "androidtest", "androidtests"}
+    segments = [segment.lower() for segment in module_name.split(".") if segment]
+    return not any(segment in excluded_segments for segment in segments)
+
 def dependencies_graph(code_root_folder):
     files = Path(code_root_folder).rglob("*.java")
 
@@ -93,7 +99,8 @@ def dependencies_digraph(code_root_folder):
         file_path = str(file)
 
         source_module = module_name_from_file_path(file_path)
-
+        if not relevant_module(source_module):
+          continue
         if source_module not in G.nodes:
             G.add_node(source_module)
 
@@ -102,10 +109,14 @@ def dependencies_digraph(code_root_folder):
             G.add_edge(source_module, target_module)
     return G
 
-def draw_graph(G, size, **args):
-    plt.figure(figsize=size)
-    nx.draw(G, **args)
+def draw_graph(G, **args):
+    plt.figure(figsize=(16, 12))
+    pos = nx.spring_layout(G, seed=42, k=0.3)
+    nx.draw_networkx_nodes(G, pos, node_size=45, alpha=0.85)
+    nx.draw_networkx_edges(G, pos, alpha=0.25, arrows=G.is_directed(), arrowsize=8)
+    nx.draw_networkx_labels(G, pos, font_size=6)
     plt.show()
-
 DG = dependencies_digraph(code_root_folder)
-draw_graph(DG, (80,80), with_labels=True)
+draw_graph(DG)
+print(DG.number_of_nodes())
+print(DG.number_of_edges())
