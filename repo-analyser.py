@@ -117,6 +117,6 @@ def draw_graph(G, **args):
     nx.draw_networkx_labels(G, pos, font_size=6)
     plt.show()
 DG = dependencies_digraph(code_root_folder)
-draw_graph(DG)
 print(DG.number_of_nodes())
 print(DG.number_of_edges())
+draw_graph(DG)
