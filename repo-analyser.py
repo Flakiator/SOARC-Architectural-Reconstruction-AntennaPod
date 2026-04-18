@@ -151,8 +151,14 @@ def draw_graph(G, **args):
     nx.draw_networkx_edges(G, pos, alpha=0.25, arrows=G.is_directed(), arrowsize=8)
     nx.draw_networkx_labels(G, pos, font_size=6)
     plt.show()
-dG = dependencies_digraph(code_root_folder)
-print(dG.number_of_nodes())
-print(dG.number_of_edges())
-aG = abstracted_to_top_level(dG, depth=3)
-draw_graph(aG)
+    
+def main():
+    dG = dependencies_digraph(code_root_folder)
+    print(dG.number_of_nodes())
+    print(dG.number_of_edges())
+
+    aG = abstracted_to_top_level(dG, depth=3)
+    draw_graph(aG)
+    
+if __name__ == "__main__":
+    main()
