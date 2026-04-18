@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 # Get curent working directory
 #print(os.getcwd())
 code_root_folder = "/Users/niklaschristensen/Desktop/antenna"
-
 def file_path(file_name):
     return code_root_folder+file_name
 
@@ -41,13 +40,32 @@ def module_name_from_file_path(full_path):
     return rel_path.replace("/", ".")
 
 
+def normalize_static_import(import_path):
+    # Map static member imports to the owning type.
+    # Example: com.example.Utils.someMethod -> com.example.Utils
+    if import_path.endswith(".*"):
+        return import_path[:-2]
+
+    parts = import_path.split(".")
+    if len(parts) > 1:
+        return ".".join(parts[:-1])
+    return import_path
+
+
 def import_from_line(line):
     # Match Java import lines, including static 
-    match = re.search(r"^\s*import\s+(?:static\s+)?([A-Za-z_][A-Za-z0-9_\.]*(?:\.\*)?)\s*;", line)
+    match = re.search(r"^\s*import\s+(static\s+)?([A-Za-z_][A-Za-z0-9_\.]*(?:\.\*)?)\s*;", line)
     if not match:
         return None
 
-    return match.group(1)
+    is_static = bool(match.group(1))
+    import_path = match.group(2)
+    is_wildcard = import_path.endswith(".*")
+
+    if is_static:
+        import_path = normalize_static_import(import_path)
+
+    return (import_path, is_static, is_wildcard)
 
 
 # Extract all imported modules/types from a Java source file.
@@ -85,10 +103,16 @@ def dependencies_graph(code_root_folder):
         if module_name not in G.nodes:
             G.add_node(module_name)
 
-        for each in imports_from_file(file_path):
-            G.add_edge(module_name, each)
+        for target_module, _, is_wildcard in imports_from_file(file_path):
+            if is_wildcard:
+                continue
+            G.add_edge(module_name, target_module)
 
     return G
+
+def top_level_packages(module_name, depth=1):
+    components = module_name.split(".")
+    return ".".join(components[:depth]) if len(components) >= depth else module_name
 
 def dependencies_digraph(code_root_folder):
     files = Path(code_root_folder).rglob("*.java")
@@ -104,10 +128,21 @@ def dependencies_digraph(code_root_folder):
         if source_module not in G.nodes:
             G.add_node(source_module)
 
-        for target_module in imports_from_file(file_path):
-
+        for target_module, _, is_wildcard in imports_from_file(file_path):
+            if is_wildcard:
+                continue
             G.add_edge(source_module, target_module)
     return G
+
+def abstracted_to_top_level(G, depth=1):
+    aG = nx.DiGraph()
+    for source, target in G.edges:
+        src = top_level_packages(source, depth)
+        dst = top_level_packages(target, depth)
+
+        if src != dst:
+            aG.add_edge(src, dst)
+    return aG
 
 def draw_graph(G, **args):
     plt.figure(figsize=(16, 12))
@@ -116,7 +151,8 @@ def draw_graph(G, **args):
     nx.draw_networkx_edges(G, pos, alpha=0.25, arrows=G.is_directed(), arrowsize=8)
     nx.draw_networkx_labels(G, pos, font_size=6)
     plt.show()
-DG = dependencies_digraph(code_root_folder)
-print(DG.number_of_nodes())
-print(DG.number_of_edges())
-draw_graph(DG)
+dG = dependencies_digraph(code_root_folder)
+print(dG.number_of_nodes())
+print(dG.number_of_edges())
+aG = abstracted_to_top_level(dG, depth=2)
+draw_graph(aG)
