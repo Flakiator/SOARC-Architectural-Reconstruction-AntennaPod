@@ -154,5 +154,5 @@ def draw_graph(G, **args):
 dG = dependencies_digraph(code_root_folder)
 print(dG.number_of_nodes())
 print(dG.number_of_edges())
-aG = abstracted_to_top_level(dG, depth=2)
+aG = abstracted_to_top_level(dG, depth=3)
 draw_graph(aG)

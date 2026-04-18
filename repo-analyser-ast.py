@@ -216,6 +216,19 @@ def dependencies_digraph(code_root_folder, include_external=False):
                 G.add_edge(source_module, resolved)
     return G
 
+def top_level_packages(module_name, depth=1):
+    components = module_name.split(".")
+    return ".".join(components[:depth]) if len(components) >= depth else module_name
+def abstracted_to_top_level(G, depth=1):
+    aG = nx.DiGraph()
+    for source, target in G.edges:
+        src = top_level_packages(source, depth)
+        dst = top_level_packages(target, depth)
+
+        if src != dst:
+            aG.add_edge(src, dst)
+    return aG
+
 def draw_graph(G, **args):
     plt.figure(figsize=(16, 12))
     pos = nx.spring_layout(G, seed=42, k=0.3)
@@ -224,6 +237,7 @@ def draw_graph(G, **args):
     nx.draw_networkx_labels(G, pos, font_size=6)
     plt.show()
 DG = dependencies_digraph(code_root_folder, True)
+ag = abstracted_to_top_level(DG, depth=3)
 print(DG.number_of_nodes())
 print(DG.number_of_edges())
-draw_graph(DG)
+draw_graph(ag)
