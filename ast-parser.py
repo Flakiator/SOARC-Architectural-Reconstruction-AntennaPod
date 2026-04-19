@@ -1,8 +1,9 @@
+import math
 import re
 from pathlib import Path
 import networkx as nx
-import matplotlib.pyplot as plt
 import javalang
+from pyvis.network import Network
 
 code_root_folder = "/Users/niklaschristensen/Desktop/antenna"
 
@@ -142,18 +143,41 @@ def abstracted_to_top_level(graph, depth=1):
         dst = top_level_packages(target, depth)
 
         if src != dst:
-            abstract_graph.add_edge(src, dst)
+            if abstract_graph.has_edge(src, dst):
+                abstract_graph[src][dst]["weight"] += 1
+            else:
+                abstract_graph.add_edge(src, dst, weight=1)
 
     return abstract_graph
 
 
-def draw_graph(graph):
-    plt.figure(figsize=(16, 12))
-    pos = nx.spring_layout(graph, seed=42, k=0.3)
-    nx.draw_networkx_nodes(graph, pos, node_size=45, alpha=0.85)
-    nx.draw_networkx_edges(graph, pos, alpha=0.25, arrows=graph.is_directed(), arrowsize=8)
-    nx.draw_networkx_labels(graph, pos, font_size=6)
-    plt.show()
+def draw_graph(graph, output_html="architecture.html"):
+    net = Network(height="900px", width="100%", directed=graph.is_directed())
+    net.barnes_hut()
+
+    for node in graph.nodes:
+        net.add_node(
+            node,
+            label=str(node),
+            title=str(node),
+            shape="box",
+            font={"size": 50, "color": "#111111"},
+            color={"background": "#ffffff"},
+        )
+
+    for source, target, data in graph.edges(data=True):
+        weight = int(data.get("weight", 1))
+        net.add_edge(
+            source,
+            target,
+            label=str(weight),
+            width=min(10, 1 + math.log2(weight + 1)),  # gentle scaling
+            title=f"{source} -> {target}: {weight}",
+            font={"size": 50, "color": "#000000", "align": "top"},
+        )
+
+    net.show(output_html, notebook=False)
+    print(f"Saved interactive graph to {output_html}")
 
 
 def main():
@@ -161,7 +185,7 @@ def main():
     print(dg.number_of_nodes())
     print(dg.number_of_edges())
 
-    ag = abstracted_to_top_level(dg, depth=3)
+    ag = abstracted_to_top_level(dg, depth=1)
     draw_graph(ag)
 
 
