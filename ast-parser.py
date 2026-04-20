@@ -5,7 +5,7 @@ import networkx as nx
 import javalang
 from pyvis.network import Network
 
-code_root_folder = "/Users/niklaschristensen/Desktop/antenna"
+code_root_folder = "/Users/niklaschristensen/Desktop/antenna/AntennaPod"
 
 def module_name_from_file_path(full_path):
     # Example: /repo/src/main/java/com/example/App.java -> com.example.App
@@ -147,7 +147,6 @@ def abstracted_to_top_level(graph, depth=1):
                 abstract_graph[src][dst]["weight"] += 1
             else:
                 abstract_graph.add_edge(src, dst, weight=1)
-
     return abstract_graph
 
 
@@ -171,11 +170,10 @@ def draw_graph(graph, output_html="architecture.html"):
             source,
             target,
             label=str(weight),
-            width=min(10, 1 + math.log2(weight + 1)),  # gentle scaling
+            width=2 * math.log2(weight + 1),  # gentle scaling
             title=f"{source} -> {target}: {weight}",
             font={"size": 50, "color": "#000000", "align": "top"},
         )
-
     net.show(output_html, notebook=False)
     print(f"Saved interactive graph to {output_html}")
 
