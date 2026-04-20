@@ -1,3 +1,4 @@
+import sys
 import math
 import re
 from pathlib import Path
@@ -179,11 +180,12 @@ def draw_graph(graph, output_html="architecture.html"):
 
 
 def main():
+    depth = int(sys.argv[1]) if len(sys.argv) > 1 else 1
     dg = dependencies_digraph(code_root_folder)
     print(dg.number_of_nodes())
     print(dg.number_of_edges())
 
-    ag = abstracted_to_top_level(dg, depth=1)
+    ag = abstracted_to_top_level(dg, depth)
     draw_graph(ag)
 
 
