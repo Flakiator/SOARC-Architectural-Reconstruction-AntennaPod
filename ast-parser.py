@@ -1,3 +1,4 @@
+from collections import defaultdict
 import sys
 import math
 import re
@@ -5,12 +6,21 @@ from pathlib import Path
 import networkx as nx
 import javalang
 from pyvis.network import Network
+from pydriller import Repository, ModificationType
 
+REPO_DIR = "https://github.com/AntennaPod/AntennaPod"
 code_root_folder = "/Users/niklaschristensen/Desktop/antenna/AntennaPod"
 
 def module_name_from_file_path(full_path):
     # Example: /repo/src/main/java/com/example/App.java -> com.example.App
-    rel_path = full_path[len(code_root_folder):]
+    normalized_path = str(full_path).replace("\\", "/")
+    root_prefix = code_root_folder.rstrip("/") + "/"
+
+    if normalized_path.startswith(root_prefix):
+        rel_path = normalized_path[len(root_prefix):]
+    else:
+        rel_path = normalized_path
+
     if rel_path.startswith("/"):
         rel_path = rel_path[1:]
 
@@ -151,17 +161,28 @@ def abstracted_to_top_level(graph, depth=1):
     return abstract_graph
 
 
-def draw_graph(graph, output_html="architecture.html"):
+def draw_graph(graph, output_html="architecture2.html", package_activity=None):
     net = Network(height="900px", width="100%", directed=graph.is_directed())
     net.barnes_hut()
 
     for node in graph.nodes:
+        churn = 0
+        if package_activity is not None:
+            churn = int(package_activity.get(node, 0))
+
+        churn_scale = math.log2(churn + 1)
+        font_size = int(14 + 3.4 * churn_scale)
+        min_width = int(80 + 12 * churn_scale)
+        box_margin = int(8 + churn_scale)
         net.add_node(
             node,
             label=str(node),
-            title=str(node),
+            title=f"{node} | churn: {churn}",
             shape="box",
-            font={"size": 50, "color": "#111111"},
+            value=churn,
+            widthConstraint={"minimum": min_width},
+            margin={"top": box_margin, "right": box_margin, "bottom": box_margin, "left": box_margin},
+            font={"size": font_size, "color": "#111111"},
             color={"background": "#ffffff"},
         )
 
@@ -178,15 +199,56 @@ def draw_graph(graph, output_html="architecture.html"):
     net.show(output_html, notebook=False)
     print(f"Saved interactive graph to {output_html}")
 
+def get_package_activity(depth=2):
+    all_commits = list(Repository(code_root_folder).traverse_commits())
+    commit_counts = defaultdict(int)
+
+    for commit in all_commits:
+        for modification in commit.modified_files:
+            new_path = modification.new_path
+            old_path = modification.old_path
+
+            if modification.change_type == ModificationType.RENAME:
+                previous_count = commit_counts.pop(old_path, 0)
+                if new_path:
+                    commit_counts[new_path] = previous_count + 1
+
+            elif modification.change_type == ModificationType.DELETE:
+                if old_path:
+                    commit_counts.pop(old_path, None)
+
+            elif modification.change_type == ModificationType.ADD:
+                if new_path:
+                    commit_counts[new_path] += 1
+
+            else:
+                current_path = new_path or old_path
+                if current_path:
+                    commit_counts[current_path] += 1
+
+    package_activity = defaultdict(int)
+
+    for path, count in commit_counts.items():
+        if not path or not str(path).endswith(".java"):
+            continue
+
+        full_path = str(Path(code_root_folder) / path)
+        grouped_module = top_level_packages(module_name_from_file_path(full_path), depth)
+        if grouped_module:
+            package_activity[grouped_module] += count
+
+    sorted_sizes = sorted(package_activity.items(), key=lambda x: x[1], reverse=True)
+    print(sorted_sizes)
+    return package_activity
 
 def main():
     depth = int(sys.argv[1]) if len(sys.argv) > 1 else 1
     dg = dependencies_digraph(code_root_folder)
     print(dg.number_of_nodes())
     print(dg.number_of_edges())
-
+    package_activity = get_package_activity(depth)
     ag = abstracted_to_top_level(dg, depth)
-    draw_graph(ag)
+    draw_graph(ag, package_activity=package_activity)
 
 
 if __name__ == "__main__":
