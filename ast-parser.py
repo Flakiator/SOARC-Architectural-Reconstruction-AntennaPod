@@ -11,6 +11,7 @@ from pydriller import Repository, ModificationType
 REPO_DIR = "https://github.com/AntennaPod/AntennaPod"
 code_root_folder = "/Users/niklaschristensen/Desktop/antenna/AntennaPod"
 
+# Map file paths to module names based on common Java project structures. And normalize path separators for cross-platform compatibility (i.e Windows fix).
 def module_name_from_file_path(full_path):
     # Example: /repo/src/main/java/com/example/App.java -> com.example.App
     normalized_path = str(full_path).replace("\\", "/")
@@ -126,23 +127,30 @@ def top_level_packages(module_name, depth=1):
 
 
 def dependencies_digraph(code_root_folder):
-    files = Path(code_root_folder).rglob("*.java")
+    files = list(Path(code_root_folder).rglob("*.java"))
     graph = nx.DiGraph()
-
+    internal_modules = set()
+    # First pass: identify all internal modules to ensure they are included as nodes even if they have no outgoing edges.
     for file in files:
         file_path = str(file)
         source_module = module_name_from_file_path(file_path)
-
         if not relevant_module(source_module):
             continue
-
+        internal_modules.add(source_module)
+    
+    for file in files:
+        file_path = str(file)
+        source_module = module_name_from_file_path(file_path)
+        if not relevant_module(source_module):
+            continue
         if source_module not in graph.nodes:
             graph.add_node(source_module)
 
         for target_module, _, is_wildcard in imports_from_file(file_path):
             if is_wildcard:
                 continue
-            graph.add_edge(source_module, target_module)
+            if target_module in internal_modules:
+                graph.add_edge(source_module, target_module)
 
     return graph
 
@@ -161,7 +169,7 @@ def abstracted_to_top_level(graph, depth=1):
     return abstract_graph
 
 
-def draw_graph(graph, output_html="architecture2.html", package_activity=None):
+def draw_graph(graph, output_html="no_externals2.html", package_activity=None):
     net = Network(height="900px", width="100%", directed=graph.is_directed())
     net.barnes_hut()
 
@@ -200,10 +208,16 @@ def draw_graph(graph, output_html="architecture2.html", package_activity=None):
     print(f"Saved interactive graph to {output_html}")
 
 def get_package_activity(depth=2):
-    all_commits = list(Repository(code_root_folder).traverse_commits())
+    # Only look at default branch, no merges and only .java commits
+    repo = Repository(
+        code_root_folder,
+        only_in_branch="develop",
+        only_no_merge=True,
+        )
+    
     commit_counts = defaultdict(int)
 
-    for commit in all_commits:
+    for commit in repo.traverse_commits():
         for modification in commit.modified_files:
             new_path = modification.new_path
             old_path = modification.old_path
@@ -212,11 +226,11 @@ def get_package_activity(depth=2):
                 previous_count = commit_counts.pop(old_path, 0)
                 if new_path:
                     commit_counts[new_path] = previous_count + 1
-
+                    
             elif modification.change_type == ModificationType.DELETE:
                 if old_path:
                     commit_counts.pop(old_path, None)
-
+                    
             elif modification.change_type == ModificationType.ADD:
                 if new_path:
                     commit_counts[new_path] += 1
@@ -253,3 +267,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
+# Look at filtering out external dependencies (e.g androidx, java.utils, com.google, etc) and see how that changes the graph.
