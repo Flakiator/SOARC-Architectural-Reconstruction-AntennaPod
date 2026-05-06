@@ -126,6 +126,12 @@ def top_level_packages(module_name, depth=1):
     return ".".join(components[:depth]) if len(components) >= depth else module_name
 
 
+def leaf_module_name(module_name):
+    if not module_name:
+        return module_name
+    return module_name.split(".")[-1]
+
+
 def dependencies_digraph(code_root_folder):
     files = list(Path(code_root_folder).rglob("*.java"))
     graph = nx.DiGraph()
@@ -201,9 +207,10 @@ def draw_graph(graph, output_html="no_externals2.html", package_activity=None, h
         is_cycle = node in cycle_nodes
         border_width = 3 if is_cycle else 1
         border_color = "#b00020" if is_cycle else "#6499FB"
+        display_label = leaf_module_name(node)
         net.add_node(
             node,
-            label=str(node),
+            label=str(display_label),
             title=f"{node} | churn: {churn}",
             shape="box",
             value=churn,
@@ -288,7 +295,7 @@ def main():
     print(dg.number_of_edges())
     package_activity = get_package_activity(depth)
     ag = abstracted_to_top_level(dg, depth)
-    draw_graph(ag, output_html="scaled_abstract.html", highlight_cycles=False, package_activity=package_activity)
+    draw_graph(ag, output_html="stripped_prefix.html", highlight_cycles=False, package_activity=package_activity)
 
 
 if __name__ == "__main__":
