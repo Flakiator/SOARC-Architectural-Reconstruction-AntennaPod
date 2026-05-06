@@ -132,6 +132,25 @@ def leaf_module_name(module_name):
     return module_name.split(".")[-1]
 
 
+def filter_graph_by_degree(graph, mode="in", min_degree=0):
+    if not mode or min_degree <= 0:
+        print("No filtering")
+        return graph
+
+    def weighted_degree(node):
+        incoming = sum(data.get("weight", 1) for _, _, data in graph.in_edges(node, data=True))
+        outgoing = sum(data.get("weight", 1) for _, _, data in graph.out_edges(node, data=True))
+        if mode == "in":
+            return incoming
+        if mode == "out":
+            return outgoing
+        return incoming + outgoing
+
+    degree_fn = weighted_degree
+    keep_nodes = [node for node in graph.nodes if degree_fn(node) >= min_degree]
+    return graph.subgraph(keep_nodes).copy(), graph.number_of_nodes() - len(keep_nodes)
+
+
 def dependencies_digraph(code_root_folder):
     files = list(Path(code_root_folder).rglob("*.java"))
     graph = nx.DiGraph()
@@ -293,9 +312,15 @@ def main():
     dg = dependencies_digraph(code_root_folder)
     print(dg.number_of_nodes())
     print(dg.number_of_edges())
-    package_activity = get_package_activity(depth)
+    #package_activity = get_package_activity(depth)
     ag = abstracted_to_top_level(dg, depth)
-    draw_graph(ag, output_html="stripped_prefix.html", highlight_cycles=False, package_activity=package_activity)
+    ag, filtered_nodes = filter_graph_by_degree(
+        ag,
+        mode="out",
+        min_degree=2,
+    )
+    print(f"Found {filtered_nodes} weak dependencies")
+    draw_graph(ag, output_html="stripped_prefix.html", highlight_cycles=False)
 
 
 if __name__ == "__main__":
