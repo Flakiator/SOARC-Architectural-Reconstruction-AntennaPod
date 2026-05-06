@@ -169,7 +169,23 @@ def abstracted_to_top_level(graph, depth=1):
     return abstract_graph
 
 
-def draw_graph(graph, output_html="no_externals2.html", package_activity=None):
+def draw_graph(graph, output_html="no_externals2.html", package_activity=None, highlight_cycles=True):
+    cycle_nodes = set()
+    cycle_edges = set()
+    if highlight_cycles:
+        for component in nx.strongly_connected_components(graph):
+            if len(component) > 1:
+                cycle_nodes.update(component)
+                for source in component:
+                    for target in graph.successors(source):
+                        if target in component:
+                            cycle_edges.add((source, target))
+            elif len(component) == 1:
+                node = next(iter(component))
+                if graph.has_edge(node, node):
+                    cycle_nodes.add(node)
+                    cycle_edges.add((node, node))
+
     net = Network(height="900px", width="100%", directed=graph.is_directed())
     net.barnes_hut()
 
@@ -182,6 +198,9 @@ def draw_graph(graph, output_html="no_externals2.html", package_activity=None):
         font_size = int(14 + 3.4 * churn_scale)
         min_width = int(80 + 12 * churn_scale)
         box_margin = int(8 + churn_scale)
+        is_cycle = node in cycle_nodes
+        border_width = 3 if is_cycle else 1
+        border_color = "#b00020" if is_cycle else "#6499FB"
         net.add_node(
             node,
             label=str(node),
@@ -191,18 +210,25 @@ def draw_graph(graph, output_html="no_externals2.html", package_activity=None):
             widthConstraint={"minimum": min_width},
             margin={"top": box_margin, "right": box_margin, "bottom": box_margin, "left": box_margin},
             font={"size": font_size, "color": "#111111"},
-            color={"background": "#ffffff"},
+            color={"background": "#ffffff", "border": border_color},
+            borderWidth=border_width,
         )
 
     for source, target, data in graph.edges(data=True):
         weight = int(data.get("weight", 1))
+        is_cycle = (source, target) in cycle_edges
+        edge_color = "#b00020" if is_cycle else "#6499FB"
+        edge_width = 2 * math.log2(weight + 1)
+        if is_cycle:
+            edge_width = max(2.5, edge_width * 1.4)
         net.add_edge(
             source,
             target,
             label=str(weight),
-            width=2 * math.log2(weight + 1),  # gentle scaling
+            width=edge_width,  # gentle scaling
             title=f"{source} -> {target}: {weight}",
             font={"size": 50, "color": "#000000", "align": "top"},
+            color=edge_color,
         )
     net.show(output_html, notebook=False)
     print(f"Saved interactive graph to {output_html}")
@@ -262,10 +288,8 @@ def main():
     print(dg.number_of_edges())
     package_activity = get_package_activity(depth)
     ag = abstracted_to_top_level(dg, depth)
-    draw_graph(ag, package_activity=package_activity)
+    draw_graph(ag, output_html="scaled_abstract.html", highlight_cycles=False, package_activity=package_activity)
 
 
 if __name__ == "__main__":
     main()
-    
-# Look at filtering out external dependencies (e.g androidx, java.utils, com.google, etc) and see how that changes the graph.
