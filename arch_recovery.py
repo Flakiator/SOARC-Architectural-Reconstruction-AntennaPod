@@ -25,19 +25,13 @@ def module_name_from_file_path(full_path):
     if rel_path.startswith("/"):
         rel_path = rel_path[1:]
 
-    source_roots = [
-        "src/main/java/",
-        "src/test/java/",
-        "app/src/main/java/",
-        "app/src/test/java/",
-        "java/",
-    ]
-
-    for root in source_roots:
-        idx = rel_path.find(root)
+    match = re.search(r"(?:^|/)(src/[^/]+/java/)", rel_path)
+    if match:
+        rel_path = rel_path[match.start(1) + len(match.group(1)):]
+    else:
+        idx = rel_path.find("java/")
         if idx != -1:
-            rel_path = rel_path[idx + len(root):]
-            break
+            rel_path = rel_path[idx + len("java/"):]
 
     if rel_path.endswith(".java"):
         rel_path = rel_path[: -len(".java")]
