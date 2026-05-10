@@ -132,19 +132,14 @@ def leaf_module_name(module_name):
     return module_name.split(".")[-1]
 
 
-def filter_graph_by_degree(graph, mode="in", min_degree=0):
-    if not mode or min_degree <= 0:
+def filter_graph_by_degree(graph, min_degree=0):
+    if min_degree <= 0:
         print("No filtering")
         return graph
 
     def weighted_degree(node):
-        incoming = sum(data.get("weight", 1) for _, _, data in graph.in_edges(node, data=True))
-        outgoing = sum(data.get("weight", 1) for _, _, data in graph.out_edges(node, data=True))
-        if mode == "in":
-            return incoming
-        if mode == "out":
-            return outgoing
-        return incoming + outgoing
+        weight = sum(data.get("weight", 1) for _, _, data in graph.edges(node, data=True))
+        return weight
 
     degree_fn = weighted_degree
     keep_nodes = [node for node in graph.nodes if degree_fn(node) >= min_degree]
@@ -211,7 +206,7 @@ def draw_graph(graph, output_html="no_externals2.html", package_activity=None, h
                     cycle_nodes.add(node)
                     cycle_edges.add((node, node))
 
-    net = Network(height="900px", width="100%", directed=graph.is_directed())
+    net = Network(height="100vh", width="100%", directed=graph.is_directed())
     net.barnes_hut()
 
     for node in graph.nodes:
@@ -312,15 +307,14 @@ def main():
     dg = dependencies_digraph(code_root_folder)
     print(dg.number_of_nodes())
     print(dg.number_of_edges())
-    #package_activity = get_package_activity(depth)
+    package_activity = get_package_activity(depth)
     ag = abstracted_to_top_level(dg, depth)
     ag, filtered_nodes = filter_graph_by_degree(
         ag,
-        mode="out",
         min_degree=2,
     )
     print(f"Found {filtered_nodes} weak dependencies")
-    draw_graph(ag, output_html="stripped_prefix.html", highlight_cycles=False)
+    draw_graph(ag, output_html="stripped_prefix.html", highlight_cycles=False, package_activity=package_activity)
 
 
 if __name__ == "__main__":
