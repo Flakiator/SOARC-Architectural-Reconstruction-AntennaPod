@@ -192,7 +192,7 @@ def draw_graph(graph, output_html="no_externals2.html", package_activity=None, h
                     cycle_nodes.add(node)
                     cycle_edges.add((node, node))
 
-    net = Network(height="900px", width="100%", directed=graph.is_directed())
+    net = Network(height="100vh", width="100%", directed=graph.is_directed())
     net.barnes_hut()
 
     for node in graph.nodes:
