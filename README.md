@@ -3,9 +3,8 @@
 Make sure to have the desired java repository cloned to your machine and check that the `code_root_folder` in `arch_recovery.py` aligns with the path to where you have the repo stored on your machine.
 
 run the program with:
-```python
-python arch_recovery.py <max_abstraction_depth>
-```
+`python arch_recovery.py <max_abstraction_depth>`
+
 Try out different integer values for `max_abstraction_depth` to get a view that suits your system.
 
 ## Beware!
