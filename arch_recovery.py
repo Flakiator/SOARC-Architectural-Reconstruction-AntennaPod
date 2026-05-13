@@ -8,7 +8,6 @@ import javalang
 from pyvis.network import Network
 from pydriller import Repository, ModificationType
 
-REPO_DIR = "https://github.com/AntennaPod/AntennaPod"
 code_root_folder = "/Users/niklaschristensen/Desktop/antenna/AntennaPod"
 
 # Map file paths to module names based on common Java project structures. And normalize path separators for cross-platform compatibility (i.e Windows fix).
@@ -299,6 +298,7 @@ def main():
     dg = dependencies_digraph(code_root_folder)
     print(dg.number_of_nodes())
     print(dg.number_of_edges())
+    package_activity=None
     package_activity = get_package_activity(depth)
     ag = abstracted_to_top_level(dg, depth)
     ag, filtered_nodes = filter_graph_by_degree(ag,min_degree=10)
