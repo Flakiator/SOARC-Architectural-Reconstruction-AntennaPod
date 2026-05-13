@@ -132,11 +132,9 @@ def filter_graph_by_degree(graph, min_degree=0):
         return graph
 
     def weighted_degree(node):
-        weight = sum(data.get("weight", 1) for _, _, data in graph.edges(node, data=True))
-        return weight
+        return graph.degree(node, weight="weight")
 
-    degree_fn = weighted_degree
-    keep_nodes = [node for node in graph.nodes if degree_fn(node) >= min_degree]
+    keep_nodes = [node for node in graph.nodes if weighted_degree(node) >= min_degree]
     return graph.subgraph(keep_nodes).copy(), graph.number_of_nodes() - len(keep_nodes)
 
 
@@ -303,12 +301,9 @@ def main():
     print(dg.number_of_edges())
     package_activity = get_package_activity(depth)
     ag = abstracted_to_top_level(dg, depth)
-    ag, filtered_nodes = filter_graph_by_degree(
-        ag,
-        min_degree=2,
-    )
+    ag, filtered_nodes = filter_graph_by_degree(ag,min_degree=10)
     print(f"Found {filtered_nodes} weak dependencies")
-    draw_graph(ag, output_html="stripped_prefix.html", highlight_cycles=False, package_activity=package_activity)
+    draw_graph(ag, output_html="test.html", highlight_cycles=False, package_activity=package_activity)
 
 
 if __name__ == "__main__":
