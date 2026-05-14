@@ -7,6 +7,8 @@ run the program with:
 
 Try out different integer values for `max_abstraction_depth` to get a view that suits your system.
 
+The script will output a shareable html file which you can open in your browser to see the generated graph
+
 ## Beware!
 Calculating the churn score/package_activity can take a long time (more than 3 minutes) depending on the size and lifetime of the project so to make testing different abstraction depths faster, commment out line 302:
 `package_activity = get_package_activity(depth)`
