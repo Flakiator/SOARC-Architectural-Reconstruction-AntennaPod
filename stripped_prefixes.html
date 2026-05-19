@@ -1,0 +1,163 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script src="lib/bindings/utils.js"></script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 100vh;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"borderWidth": 1, "color": {"background": "#ffffff", "border": "#6499FB"}, "font": {"color": "#111111", "size": 27}, "id": "de.danoeh.antennapod.ClientConfigurator", "label": "ClientConfigurator", "margin": {"bottom": 12, "left": 12, "right": 12, "top": 12}, "shape": "box", "title": "de.danoeh.antennapod.ClientConfigurator | churn: 16", "value": 16, "widthConstraint": {"minimum": 129}}, {"borderWidth": 1, "color": {"background": "#ffffff", "border": "#6499FB"}, "font": {"color": "#111111", "size": 49}, "id": "de.danoeh.antennapod.net", "label": "net", "margin": {"bottom": 18, "left": 18, "right": 18, "top": 18}, "shape": "box", "title": "de.danoeh.antennapod.net | churn: 1458", "value": 1458, "widthConstraint": {"minimum": 206}}, {"borderWidth": 1, "color": {"background": "#ffffff", "border": "#6499FB"}, "font": {"color": "#111111", "size": 50}, "id": "de.danoeh.antennapod.storage", "label": "storage", "margin": {"bottom": 18, "left": 18, "right": 18, "top": 18}, "shape": "box", "title": "de.danoeh.antennapod.storage | churn: 1689", "value": 1689, "widthConstraint": {"minimum": 208}}, {"borderWidth": 1, "color": {"background": "#ffffff", "border": "#6499FB"}, "font": {"color": "#111111", "size": 56}, "id": "de.danoeh.antennapod.ui", "label": "ui", "margin": {"bottom": 20, "left": 20, "right": 20, "top": 20}, "shape": "box", "title": "de.danoeh.antennapod.ui | churn: 5523", "value": 5523, "widthConstraint": {"minimum": 229}}, {"borderWidth": 1, "color": {"background": "#ffffff", "border": "#6499FB"}, "font": {"color": "#111111", "size": 35}, "id": "de.danoeh.antennapod.event", "label": "event", "margin": {"bottom": 14, "left": 14, "right": 14, "top": 14}, "shape": "box", "title": "de.danoeh.antennapod.event | churn: 84", "value": 84, "widthConstraint": {"minimum": 156}}, {"borderWidth": 1, "color": {"background": "#ffffff", "border": "#6499FB"}, "font": {"color": "#111111", "size": 46}, "id": "de.danoeh.antennapod.model", "label": "model", "margin": {"bottom": 17, "left": 17, "right": 17, "top": 17}, "shape": "box", "title": "de.danoeh.antennapod.model | churn: 762", "value": 762, "widthConstraint": {"minimum": 194}}, {"borderWidth": 1, "color": {"background": "#ffffff", "border": "#6499FB"}, "font": {"color": "#111111", "size": 20}, "id": "de.danoeh.antennapod.system", "label": "system", "margin": {"bottom": 10, "left": 10, "right": 10, "top": 10}, "shape": "box", "title": "de.danoeh.antennapod.system | churn: 3", "value": 3, "widthConstraint": {"minimum": 104}}, {"borderWidth": 1, "color": {"background": "#ffffff", "border": "#6499FB"}, "font": {"color": "#111111", "size": 17}, "id": "de.danoeh.antennapod.CrashReportExceptionHandler", "label": "CrashReportExceptionHandler", "margin": {"bottom": 9, "left": 9, "right": 9, "top": 9}, "shape": "box", "title": "de.danoeh.antennapod.CrashReportExceptionHandler | churn: 1", "value": 1, "widthConstraint": {"minimum": 92}}, {"borderWidth": 1, "color": {"background": "#ffffff", "border": "#6499FB"}, "font": {"color": "#111111", "size": 32}, "id": "de.danoeh.antennapod.PreferenceUpgrader", "label": "PreferenceUpgrader", "margin": {"bottom": 13, "left": 13, "right": 13, "top": 13}, "shape": "box", "title": "de.danoeh.antennapod.PreferenceUpgrader | churn: 44", "value": 44, "widthConstraint": {"minimum": 145}}, {"borderWidth": 1, "color": {"background": "#ffffff", "border": "#6499FB"}, "font": {"color": "#111111", "size": 43}, "id": "de.danoeh.antennapod.activity", "label": "activity", "margin": {"bottom": 16, "left": 16, "right": 16, "top": 16}, "shape": "box", "title": "de.danoeh.antennapod.activity | churn: 406", "value": 406, "widthConstraint": {"minimum": 184}}, {"borderWidth": 1, "color": {"background": "#ffffff", "border": "#6499FB"}, "font": {"color": "#111111", "size": 21}, "id": "de.danoeh.antennapod.RxJavaErrorHandlerSetup", "label": "RxJavaErrorHandlerSetup", "margin": {"bottom": 10, "left": 10, "right": 10, "top": 10}, "shape": "box", "title": "de.danoeh.antennapod.RxJavaErrorHandlerSetup | churn: 4", "value": 4, "widthConstraint": {"minimum": 107}}, {"borderWidth": 1, "color": {"background": "#ffffff", "border": "#6499FB"}, "font": {"color": "#111111", "size": 38}, "id": "de.danoeh.antennapod.actionbutton", "label": "actionbutton", "margin": {"bottom": 15, "left": 15, "right": 15, "top": 15}, "shape": "box", "title": "de.danoeh.antennapod.actionbutton | churn: 145", "value": 145, "widthConstraint": {"minimum": 166}}, {"borderWidth": 1, "color": {"background": "#ffffff", "border": "#6499FB"}, "font": {"color": "#111111", "size": 48}, "id": "de.danoeh.antennapod.playback", "label": "playback", "margin": {"bottom": 18, "left": 18, "right": 18, "top": 18}, "shape": "box", "title": "de.danoeh.antennapod.playback | churn: 1130", "value": 1130, "widthConstraint": {"minimum": 201}}, {"borderWidth": 1, "color": {"background": "#ffffff", "border": "#6499FB"}, "font": {"color": "#111111", "size": 24}, "id": "com.google.android.material", "label": "material", "margin": {"bottom": 11, "left": 11, "right": 11, "top": 11}, "shape": "box", "title": "com.google.android.material | churn: 7", "value": 7, "widthConstraint": {"minimum": 116}}, {"borderWidth": 1, "color": {"background": "#ffffff", "border": "#6499FB"}, "font": {"color": "#111111", "size": 45}, "id": "de.danoeh.antennapod.parser", "label": "parser", "margin": {"bottom": 17, "left": 17, "right": 17, "top": 17}, "shape": "box", "title": "de.danoeh.antennapod.parser | churn: 628", "value": 628, "widthConstraint": {"minimum": 191}}]);
+                  edges = new vis.DataSet([{"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.ClientConfigurator", "label": "12", "title": "de.danoeh.antennapod.ClientConfigurator -\u003e de.danoeh.antennapod.net: 12", "to": "de.danoeh.antennapod.net", "width": 7.400879436282184}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.ClientConfigurator", "label": "7", "title": "de.danoeh.antennapod.ClientConfigurator -\u003e de.danoeh.antennapod.storage: 7", "to": "de.danoeh.antennapod.storage", "width": 6.0}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.ClientConfigurator", "label": "1", "title": "de.danoeh.antennapod.ClientConfigurator -\u003e de.danoeh.antennapod.ui: 1", "to": "de.danoeh.antennapod.ui", "width": 2.0}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.net", "label": "8", "title": "de.danoeh.antennapod.net -\u003e de.danoeh.antennapod.event: 8", "to": "de.danoeh.antennapod.event", "width": 6.339850002884624}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.net", "label": "115", "title": "de.danoeh.antennapod.net -\u003e de.danoeh.antennapod.model: 115", "to": "de.danoeh.antennapod.model", "width": 13.715961990255144}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.net", "label": "70", "title": "de.danoeh.antennapod.net -\u003e de.danoeh.antennapod.storage: 70", "to": "de.danoeh.antennapod.storage", "width": 12.299494239009364}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.net", "label": "11", "title": "de.danoeh.antennapod.net -\u003e de.danoeh.antennapod.parser: 11", "to": "de.danoeh.antennapod.parser", "width": 7.169925001442312}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.net", "label": "7", "title": "de.danoeh.antennapod.net -\u003e de.danoeh.antennapod.ui: 7", "to": "de.danoeh.antennapod.ui", "width": 6.0}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.storage", "label": "108", "title": "de.danoeh.antennapod.storage -\u003e de.danoeh.antennapod.model: 108", "to": "de.danoeh.antennapod.model", "width": 13.536368649553852}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.storage", "label": "1", "title": "de.danoeh.antennapod.storage -\u003e de.danoeh.antennapod.system: 1", "to": "de.danoeh.antennapod.system", "width": 2.0}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.storage", "label": "10", "title": "de.danoeh.antennapod.storage -\u003e de.danoeh.antennapod.event: 10", "to": "de.danoeh.antennapod.event", "width": 6.918863237274595}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.storage", "label": "15", "title": "de.danoeh.antennapod.storage -\u003e de.danoeh.antennapod.net: 15", "to": "de.danoeh.antennapod.net", "width": 8.0}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.storage", "label": "3", "title": "de.danoeh.antennapod.storage -\u003e de.danoeh.antennapod.ui: 3", "to": "de.danoeh.antennapod.ui", "width": 4.0}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.storage", "label": "1", "title": "de.danoeh.antennapod.storage -\u003e de.danoeh.antennapod.parser: 1", "to": "de.danoeh.antennapod.parser", "width": 2.0}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.ui", "label": "185", "title": "de.danoeh.antennapod.ui -\u003e de.danoeh.antennapod.storage: 185", "to": "de.danoeh.antennapod.storage", "width": 15.078317622216062}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.ui", "label": "151", "title": "de.danoeh.antennapod.ui -\u003e de.danoeh.antennapod.event: 151", "to": "de.danoeh.antennapod.event", "width": 14.49585502688717}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.ui", "label": "216", "title": "de.danoeh.antennapod.ui -\u003e de.danoeh.antennapod.model: 216", "to": "de.danoeh.antennapod.model", "width": 15.523102464888959}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.ui", "label": "64", "title": "de.danoeh.antennapod.ui -\u003e de.danoeh.antennapod.net: 64", "to": "de.danoeh.antennapod.net", "width": 12.044735626056909}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.ui", "label": "28", "title": "de.danoeh.antennapod.ui -\u003e de.danoeh.antennapod.activity: 28", "to": "de.danoeh.antennapod.activity", "width": 9.715961990255144}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.ui", "label": "15", "title": "de.danoeh.antennapod.ui -\u003e de.danoeh.antennapod.actionbutton: 15", "to": "de.danoeh.antennapod.actionbutton", "width": 8.0}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.ui", "label": "38", "title": "de.danoeh.antennapod.ui -\u003e de.danoeh.antennapod.playback: 38", "to": "de.danoeh.antennapod.playback", "width": 10.570804437724497}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.ui", "label": "1", "title": "de.danoeh.antennapod.ui -\u003e com.google.android.material: 1", "to": "com.google.android.material", "width": 2.0}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.ui", "label": "10", "title": "de.danoeh.antennapod.ui -\u003e de.danoeh.antennapod.parser: 10", "to": "de.danoeh.antennapod.parser", "width": 6.918863237274595}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.ui", "label": "2", "title": "de.danoeh.antennapod.ui -\u003e de.danoeh.antennapod.system: 2", "to": "de.danoeh.antennapod.system", "width": 3.169925001442312}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.event", "label": "8", "title": "de.danoeh.antennapod.event -\u003e de.danoeh.antennapod.model: 8", "to": "de.danoeh.antennapod.model", "width": 6.339850002884624}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.system", "label": "1", "title": "de.danoeh.antennapod.system -\u003e de.danoeh.antennapod.storage: 1", "to": "de.danoeh.antennapod.storage", "width": 2.0}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.CrashReportExceptionHandler", "label": "1", "title": "de.danoeh.antennapod.CrashReportExceptionHandler -\u003e de.danoeh.antennapod.system: 1", "to": "de.danoeh.antennapod.system", "width": 2.0}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.PreferenceUpgrader", "label": "1", "title": "de.danoeh.antennapod.PreferenceUpgrader -\u003e de.danoeh.antennapod.system: 1", "to": "de.danoeh.antennapod.system", "width": 2.0}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.PreferenceUpgrader", "label": "1", "title": "de.danoeh.antennapod.PreferenceUpgrader -\u003e de.danoeh.antennapod.net: 1", "to": "de.danoeh.antennapod.net", "width": 2.0}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.PreferenceUpgrader", "label": "2", "title": "de.danoeh.antennapod.PreferenceUpgrader -\u003e de.danoeh.antennapod.storage: 2", "to": "de.danoeh.antennapod.storage", "width": 3.169925001442312}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.PreferenceUpgrader", "label": "4", "title": "de.danoeh.antennapod.PreferenceUpgrader -\u003e de.danoeh.antennapod.ui: 4", "to": "de.danoeh.antennapod.ui", "width": 4.643856189774724}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.activity", "label": "4", "title": "de.danoeh.antennapod.activity -\u003e de.danoeh.antennapod.event: 4", "to": "de.danoeh.antennapod.event", "width": 4.643856189774724}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.activity", "label": "3", "title": "de.danoeh.antennapod.activity -\u003e de.danoeh.antennapod.model: 3", "to": "de.danoeh.antennapod.model", "width": 4.0}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.activity", "label": "6", "title": "de.danoeh.antennapod.activity -\u003e de.danoeh.antennapod.net: 6", "to": "de.danoeh.antennapod.net", "width": 5.614709844115208}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.activity", "label": "3", "title": "de.danoeh.antennapod.activity -\u003e de.danoeh.antennapod.playback: 3", "to": "de.danoeh.antennapod.playback", "width": 4.0}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.activity", "label": "9", "title": "de.danoeh.antennapod.activity -\u003e de.danoeh.antennapod.storage: 9", "to": "de.danoeh.antennapod.storage", "width": 6.643856189774724}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.activity", "label": "32", "title": "de.danoeh.antennapod.activity -\u003e de.danoeh.antennapod.ui: 32", "to": "de.danoeh.antennapod.ui", "width": 10.088788238716907}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.activity", "label": "1", "title": "de.danoeh.antennapod.activity -\u003e de.danoeh.antennapod.system: 1", "to": "de.danoeh.antennapod.system", "width": 2.0}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.RxJavaErrorHandlerSetup", "label": "1", "title": "de.danoeh.antennapod.RxJavaErrorHandlerSetup -\u003e de.danoeh.antennapod.system: 1", "to": "de.danoeh.antennapod.system", "width": 2.0}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.actionbutton", "label": "4", "title": "de.danoeh.antennapod.actionbutton -\u003e de.danoeh.antennapod.net: 4", "to": "de.danoeh.antennapod.net", "width": 4.643856189774724}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.actionbutton", "label": "21", "title": "de.danoeh.antennapod.actionbutton -\u003e de.danoeh.antennapod.model: 21", "to": "de.danoeh.antennapod.model", "width": 8.918863237274595}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.actionbutton", "label": "7", "title": "de.danoeh.antennapod.actionbutton -\u003e de.danoeh.antennapod.storage: 7", "to": "de.danoeh.antennapod.storage", "width": 6.0}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.actionbutton", "label": "3", "title": "de.danoeh.antennapod.actionbutton -\u003e de.danoeh.antennapod.ui: 3", "to": "de.danoeh.antennapod.ui", "width": 4.0}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.actionbutton", "label": "9", "title": "de.danoeh.antennapod.actionbutton -\u003e de.danoeh.antennapod.playback: 9", "to": "de.danoeh.antennapod.playback", "width": 6.643856189774724}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.actionbutton", "label": "2", "title": "de.danoeh.antennapod.actionbutton -\u003e de.danoeh.antennapod.event: 2", "to": "de.danoeh.antennapod.event", "width": 3.169925001442312}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.playback", "label": "25", "title": "de.danoeh.antennapod.playback -\u003e de.danoeh.antennapod.storage: 25", "to": "de.danoeh.antennapod.storage", "width": 9.400879436282183}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.playback", "label": "71", "title": "de.danoeh.antennapod.playback -\u003e de.danoeh.antennapod.model: 71", "to": "de.danoeh.antennapod.model", "width": 12.339850002884624}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.playback", "label": "34", "title": "de.danoeh.antennapod.playback -\u003e de.danoeh.antennapod.event: 34", "to": "de.danoeh.antennapod.event", "width": 10.258566033889933}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.playback", "label": "19", "title": "de.danoeh.antennapod.playback -\u003e de.danoeh.antennapod.ui: 19", "to": "de.danoeh.antennapod.ui", "width": 8.643856189774725}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.playback", "label": "9", "title": "de.danoeh.antennapod.playback -\u003e de.danoeh.antennapod.net: 9", "to": "de.danoeh.antennapod.net", "width": 6.643856189774724}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.playback", "label": "1", "title": "de.danoeh.antennapod.playback -\u003e de.danoeh.antennapod.system: 1", "to": "de.danoeh.antennapod.system", "width": 2.0}, {"arrows": "to", "color": "#6499FB", "font": {"align": "top", "color": "#000000", "size": 50}, "from": "de.danoeh.antennapod.parser", "label": "45", "title": "de.danoeh.antennapod.parser -\u003e de.danoeh.antennapod.model: 45", "to": "de.danoeh.antennapod.model", "width": 11.047123912114026}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {
+    "configure": {
+        "enabled": false
+    },
+    "edges": {
+        "color": {
+            "inherit": true
+        },
+        "smooth": {
+            "enabled": true,
+            "type": "dynamic"
+        }
+    },
+    "interaction": {
+        "dragNodes": true,
+        "hideEdgesOnDrag": false,
+        "hideNodesOnDrag": false
+    },
+    "physics": {
+        "barnesHut": {
+            "avoidOverlap": 0,
+            "centralGravity": 0.3,
+            "damping": 0.09,
+            "gravitationalConstant": -80000,
+            "springConstant": 0.001,
+            "springLength": 250
+        },
+        "enabled": true,
+        "stabilization": {
+            "enabled": true,
+            "fit": true,
+            "iterations": 1000,
+            "onlyDynamicEdges": false,
+            "updateInterval": 50
+        }
+    }
+};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>
